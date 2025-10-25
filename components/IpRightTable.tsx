@@ -54,7 +54,10 @@ const SortableHeader: React.FC<{
 };
 
 
-export const IpRightTable: React.FC<IpRightTableProps> = ({ ipRights, rules, selectedIpRightId, onSelect, onOpenDetail, onEdit, onDelete, sortConfig, onSort }) => {
+export const IpRightTable: React.FC<IpRightTableProps> = ({ 
+    ipRights, rules, selectedIpRightId, onSelect, onOpenDetail, onEdit, onDelete, 
+    sortConfig, onSort
+}) => {
   return (
     <div className="bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -71,25 +74,28 @@ export const IpRightTable: React.FC<IpRightTableProps> = ({ ipRights, rules, sel
             {ipRights.map((ipRight) => (
               <tr 
                 key={ipRight.id}
+                onClick={() => onSelect(ipRight)}
                 onDoubleClick={() => onOpenDetail(ipRight)}
                 className={`transition-colors cursor-pointer ${selectedIpRightId === ipRight.id ? 'bg-blue-600/20' : 'hover:bg-gray-800/40'}`}
               >
-                <td 
-                    className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6"
-                    onClick={() => onSelect(ipRight)}
-                >
+                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">
                     <div className="font-semibold">{ipRight.name}</div>
                     <div className="text-gray-400 font-mono text-xs">{ipRight.id}</div>
                 </td>
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400" onClick={() => onSelect(ipRight)}>{ipRight.ipType}</td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{ipRight.ipType}</td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">
                     <MatchingRuleCell ipRight={ipRight} rules={rules} />
                 </td>
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex gap-4 justify-end">
-                    <button onClick={() => onOpenDetail(ipRight)} className="text-gray-300 hover:text-white">Open</button>
-                    <button onClick={() => onEdit(ipRight)} className="text-blue-400 hover:text-blue-300">Edit</button>
-                    <button onClick={() => onDelete(ipRight.id)} className="text-red-400 hover:text-red-300">Delete</button>
+                    <button onClick={(e) => { e.stopPropagation(); onOpenDetail(ipRight); }} className="text-gray-300 hover:text-white">Open</button>
+                    <button onClick={(e) => { e.stopPropagation(); onEdit(ipRight); }} className="text-blue-400 hover:text-blue-300">Edit</button>
+                    <button onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if (window.confirm(`Are you sure you want to delete "${ipRight.name}"?`)) {
+                          onDelete(ipRight.id);
+                        }
+                    }} className="text-red-400 hover:text-red-300">Delete</button>
                   </div>
                 </td>
               </tr>

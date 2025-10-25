@@ -156,14 +156,13 @@ const IpRightsView = ({ ipRights, rules, onOpenModal, onOpenDetail, onDelete, on
             setCurrentPage(1);
         }
     }, [currentPage, totalPages]);
-
-
+    
     return (
         <>
             <div className="flex justify-between items-center mb-6 flex-shrink-0">
                 <div>
                     <h1 className="text-2xl font-bold text-white">IP Rights Portfolio</h1>
-                    <p className="text-gray-400 mt-1">Double-click or use the 'Open' button to view an IP right's details.</p>
+                    <p className="text-gray-400 mt-1">Manage your IP assets and their corresponding legal rules.</p>
                 </div>
                 <Button onClick={() => onOpenModal(null)}>Add IP Right</Button>
             </div>
