@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import type { IpRight, Rule, CalculatedAnnuity, SortConfig } from './types';
 import { RuleTable } from './components/RuleTable';
@@ -18,7 +19,7 @@ const ITEMS_PER_PAGE = 15;
 type SortableRuleKey = keyof Pick<Rule, 'rank' | 'country' | 'ipType' | 'ipStatus' | 'ipOrigin'>;
 type SortableIpRightKey = keyof Pick<IpRight, 'name' | 'ipType'>;
 
-const RulesView = ({ rules, onEdit, onDelete, onOpenModal }: { rules: Rule[], onEdit: (rule: Rule) => void, onDelete: (id: string) => void, onOpenModal: (rule: Rule | null) => void }) => {
+const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount }: { rules: Rule[], onEdit: (rule: Rule) => void, onDelete: (id: string) => void, onOpenModal: (rule: Rule | null) => void, ruleUsageCount: Map<string, number> }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig<Rule>>({ key: 'rank', direction: 'ascending' });
 
@@ -84,7 +85,7 @@ const RulesView = ({ rules, onEdit, onDelete, onOpenModal }: { rules: Rule[], on
             className="block w-full rounded-md border-0 bg-white/5 py-2 pl-10 text-white ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm"
         />
       </div>
-      <RuleTable rules={filteredAndSortedRules} onEdit={onEdit} onDelete={onDelete} sortConfig={sortConfig} onSort={handleSortRequest}/>
+      <RuleTable rules={filteredAndSortedRules} onEdit={onEdit} onDelete={onDelete} sortConfig={sortConfig} onSort={handleSortRequest} ruleUsageCount={ruleUsageCount}/>
     </>
   );
 };
@@ -266,6 +267,17 @@ function App() {
     return calculateAnnuitySchedule(editingIpRight, match.rule);
   }, [editingIpRight, rules]);
 
+  const ruleUsageCount = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const ipRight of ipRights) {
+        const match = findMatchingRuleAndPlan(ipRight, rules);
+        if (match) {
+            counts.set(match.rule.id, (counts.get(match.rule.id) || 0) + 1);
+        }
+    }
+    return counts;
+  }, [ipRights, rules]);
+
   return (
     <div className="h-screen w-screen bg-gray-900 text-white flex overflow-hidden">
       <div className="flex-1 flex flex-col">
@@ -296,7 +308,7 @@ function App() {
 
           <main className="flex-1 p-8 flex flex-col overflow-hidden">
             {currentView === 'rules' ? (
-                <RulesView rules={rules} onDelete={deleteRule} onEdit={handleOpenRuleModal} onOpenModal={handleOpenRuleModal} />
+                <RulesView rules={rules} onDelete={deleteRule} onEdit={handleOpenRuleModal} onOpenModal={handleOpenRuleModal} ruleUsageCount={ruleUsageCount} />
             ) : (
                 <IpRightsView 
                     ipRights={ipRights} 

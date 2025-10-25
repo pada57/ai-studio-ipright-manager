@@ -1,3 +1,4 @@
+
 import React from 'react';
 // FIX: Corrected import path for types.
 import type { Rule, Condition, SortConfig } from '../types';
@@ -8,6 +9,7 @@ interface RuleTableProps {
   onDelete: (ruleId: string) => void;
   sortConfig: SortConfig<Rule>;
   onSort: (key: keyof Pick<Rule, 'rank' | 'country' | 'ipType' | 'ipStatus' | 'ipOrigin'>) => void;
+  ruleUsageCount: Map<string, number>;
 }
 
 const ConditionBadge: React.FC<{condition: Condition}> = ({ condition }) => (
@@ -39,7 +41,7 @@ const SortableHeader: React.FC<{
 };
 
 
-export const RuleTable: React.FC<RuleTableProps> = ({ rules, onEdit, onDelete, sortConfig, onSort }) => {
+export const RuleTable: React.FC<RuleTableProps> = ({ rules, onEdit, onDelete, sortConfig, onSort, ruleUsageCount }) => {
   return (
     <div className="bg-gray-800/50 rounded-lg border border-gray-700 shadow-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -52,11 +54,14 @@ export const RuleTable: React.FC<RuleTableProps> = ({ rules, onEdit, onDelete, s
               <SortableHeader title="Status" sortKey="ipStatus" sortConfig={sortConfig} onSort={onSort} className="px-3" />
               <SortableHeader title="Origin" sortKey="ipOrigin" sortConfig={sortConfig} onSort={onSort} className="px-3" />
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-300">Conditions</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-300">Usage</th>
               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800 bg-gray-900/50">
-            {rules.map((rule) => (
+            {rules.map((rule) => {
+              const count = ruleUsageCount.get(rule.id) || 0;
+              return (
               <tr key={rule.id} className="hover:bg-gray-800/40 transition-colors">
                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{rule.rank}</td>
                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{rule.country}</td>
@@ -68,6 +73,11 @@ export const RuleTable: React.FC<RuleTableProps> = ({ rules, onEdit, onDelete, s
                         {rule.conditions.length > 0 ? rule.conditions.map(c => <ConditionBadge key={c.id} condition={c} />) : <span className="text-gray-500">None</span>}
                     </div>
                 </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400 text-center">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${count > 0 ? 'bg-blue-600/30 text-blue-300' : 'bg-gray-700 text-gray-400'}`}>
+                        {count}
+                    </span>
+                </td>
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                   <div className="flex gap-2 justify-end">
                     <button onClick={() => onEdit(rule)} className="text-blue-400 hover:text-blue-300">Edit</button>
@@ -75,7 +85,7 @@ export const RuleTable: React.FC<RuleTableProps> = ({ rules, onEdit, onDelete, s
                   </div>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
         {rules.length === 0 && (
