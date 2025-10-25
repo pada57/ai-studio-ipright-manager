@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import type { IpRight, Rule, CalculatedAnnuity, SortConfig } from './types';
 import { RuleTable } from './components/RuleTable';
@@ -43,7 +44,7 @@ const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount, onRep
             rule.ipOrigin.toLowerCase().includes(lowercasedQuery) ||
             rule.conditions.some(c => 
                 c.field.toLowerCase().includes(lowercasedQuery) ||
-                c.value.toLowerCase().includes(lowercasedQuery)
+                String(c.value).toLowerCase().includes(lowercasedQuery)
             )
         );
     }
@@ -279,12 +280,12 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('ip_rights');
 
   // Rules state
-  const { rules, addRule, updateRule, deleteRule, replaceAllRules } = useRules();
+  const { rules, addRule, updateRule, deleteRule, replaceAllRules, loading: rulesLoading } = useRules();
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
 
   // IP Rights state
-  const { ipRights, addIpRight, updateIpRight, deleteIpRight, replaceAllIpRights } = useIpRights();
+  const { ipRights, addIpRight, updateIpRight, deleteIpRight, replaceAllIpRights, loading: ipRightsLoading } = useIpRights();
   const [selectedIpRight, setSelectedIpRight] = useState<IpRight | null>(null);
   const [viewingIpRight, setViewingIpRight] = useState<IpRight | null>(null);
   const [isIpRightModalOpen, setIsIpRightModalOpen] = useState(false);
@@ -348,6 +349,12 @@ function App() {
     }
     return counts;
   }, [ipRights, rules]);
+
+  if (rulesLoading || ipRightsLoading) {
+    // The initial loader is visible via index.html until React hydrates.
+    // This return is a fallback and for when loading state changes during app lifecycle.
+    return null; 
+  }
 
   return (
     <div className="h-screen w-screen bg-gray-900 text-white flex overflow-hidden">

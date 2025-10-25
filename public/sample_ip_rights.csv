@@ -1,0 +1,13 @@
+id,name,country,ipType,ipStatus,ipOrigin,Application Date,Filing Date,Priority Date,Grant Date,Registration Date,Publication Date,createdBy,createdAt,lastModifiedBy,lastModifiedAt
+"US-00001","AI-Powered Personal Assistant #1","US","Utility Model","Granted","European","2008-01-20","2008-01-20","1996-03-24","2010-09-06",,"2008-09-02","System Seed","1999-07-25T03:51:33.225Z","System Seed","2010-09-06T15:24:21.031Z"
+"KR-00002","Neural Interface Device #2","KR","Patent (Continuation)","Pending","International","2002-05-18","2002-05-18","1991-03-22",,,"2002-12-16","System Seed","2012-05-30T10:48:47.472Z","System Seed","2012-05-30T10:48:47.472Z"
+"DE-00003","Bio-Synthetic Organ Replacement #3","DE","Design (Divisional)","Pending","European","1995-10-18","1995-10-18","1995-09-04",,,"1996-07-28","System Seed","2017-02-15T02:29:43.085Z","System Seed","2017-02-15T02:29:43.085Z"
+"CN-00004","Fusion Reactor Miniaturizer #4","CN","Patent (Divisional)","Granted","National","2011-10-17","2011-10-17","2002-04-20","2016-09-28","2016-09-28","2012-02-27","System Seed","2010-09-10T02:37:25.568Z","System Seed","2016-09-28T02:24:37.337Z"
+"GB-00005","Self-Healing Polymer #5","GB","Utility Model","Pending","National","2009-08-25","2009-08-25","2000-08-27",,,"2010-06-21","System Seed","2007-06-02T13:40:02.046Z","System Seed","2007-06-02T13:40:02.046Z"
+"JP-00006","Quantum Entanglement Communicator #6","JP","Patent (Divisional)","Granted","National","2013-09-17","2013-09-17","2009-03-22","2015-02-27","2015-02-27","2014-06-02","System Seed","2015-10-03T16:21:49.032Z","System Seed","2015-02-27T08:08:49.204Z"
+"DE-00007","Holographic Display Technology #7","DE","Design (Divisional)","Granted","European","2001-08-16","2001-08-16","1998-05-23","2011-03-24","2011-03-24","2002-08-01","System Seed","2023-01-29T21:45:00.612Z","System Seed","2011-03-24T05:50:50.045Z"
+"EP-00008","Antimatter Propulsion System #8","EP","Trademark","Pending","International","2014-03-01","2014-03-01","2005-09-27",,,"2015-02-13","System Seed","2019-10-17T11:51:33.279Z","System Seed","2019-10-17T11:51:33.279Z"
+"GB-00009","Self-Healing Polymer #9","GB","Patent (Continuation)","Granted","European","2015-11-21","2015-11-21","2007-07-23","2019-03-01",,"2016-01-27","System Seed","2023-06-15T08:29:43.208Z","System Seed","2019-03-01T07:23:44.821Z"
+"CN-00010","Self-Healing Polymer #10","CN","Design","Pending","National","1992-06-19","1992-06-19","1991-03-08",,,"1993-01-14","System Seed","2003-02-14T03:09:41.332Z","System Seed","2003-02-14T03:09:41.332Z"
+"..."
+"NOTE: This is a truncated preview of the 1,000-line CSV file."

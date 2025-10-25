@@ -1,3 +1,4 @@
+
 import type { IpRight, Rule } from '../types';
 
 /**
@@ -57,8 +58,8 @@ export function exportToCsv(filename: string, data: any[]): void {
  */
 const parsePotentiallyJsonString = (value: string): any => {
     try {
-        // Only try to parse if it looks like an object or array
-        if ((value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'))) {
+        // Only try to parse if it looks like an object or array and isn't just a number in a string
+        if (((value.startsWith('{') && value.endsWith('}')) || (value.startsWith('[') && value.endsWith(']'))) && isNaN(Number(value))) {
              return JSON.parse(value);
         }
     } catch (e) {
@@ -99,6 +100,43 @@ function parseCsvRow(rowString: string): string[] {
     return values;
 }
 
+/**
+ * Parses a raw CSV text string into an array of objects.
+ * @param text - The raw string content of a CSV file.
+ * @returns An array of parsed objects.
+ */
+export function parseCsvText<T>(text: string): T[] {
+    if (!text) {
+        throw new Error("CSV text is empty.");
+    }
+    
+    const lines = text.replace(/\r\n/g, '\n').split('\n').filter(line => line.trim() !== '');
+    if (lines.length < 2) {
+        // Allow empty CSVs (header only)
+        if (lines.length === 1 && lines[0].trim() !== '') return [];
+        throw new Error("CSV must have a header row and at least one data row.");
+    }
+    
+    const header = lines[0].trim().split(',').map(h => h.replace(/"/g, ''));
+    const data: T[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const values = parseCsvRow(lines[i].trim());
+
+        if (values.length !== header.length) {
+            console.warn(`Skipping malformed row ${i + 1}: Expected ${header.length} columns, but got ${values.length}`);
+            continue;
+        }
+        const obj: any = {};
+        header.forEach((key, index) => {
+            const value = values[index];
+            obj[key] = parsePotentiallyJsonString(value);
+        });
+        data.push(obj as T);
+    }
+    return data;
+}
+
 
 /**
  * Imports and parses a CSV file into an array of objects.
@@ -117,34 +155,12 @@ export function importFromCsv<T>(file: File): Promise<T[]> {
         const reader = new FileReader();
         reader.onload = (event) => {
             const text = event.target?.result as string;
-            if (!text) {
-                return reject(new Error("File is empty or could not be read."));
+            try {
+                const data = parseCsvText<T>(text);
+                resolve(data);
+            } catch (error) {
+                reject(error);
             }
-            
-            // Normalize line endings and filter out empty lines
-            const lines = text.replace(/\r\n/g, '\n').split('\n').filter(line => line.trim() !== '');
-            if (lines.length < 2) {
-                return reject(new Error("CSV must have a header row and at least one data row."));
-            }
-            
-            const header = lines[0].trim().split(',');
-            const data: T[] = [];
-
-            for (let i = 1; i < lines.length; i++) {
-                const values = parseCsvRow(lines[i].trim());
-
-                if (values.length !== header.length) {
-                    console.warn(`Skipping malformed row ${i + 1}: Expected ${header.length} columns, but got ${values.length}`);
-                    continue;
-                }
-                const obj: any = {};
-                header.forEach((key, index) => {
-                    const value = values[index];
-                    obj[key] = parsePotentiallyJsonString(value);
-                });
-                data.push(obj as T);
-            }
-            resolve(data);
         };
         reader.onerror = (error) => reject(error);
         reader.readAsText(file);
