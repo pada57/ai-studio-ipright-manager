@@ -1,0 +1,5 @@
+{
+  "name": "IP Rights Law Engine Manager",
+  "description": "An application to manage rules for a country's law engine for IP rights, including patents, designs, and trademarks. Users can define rules for due dates, lifetime, fees, and payment periods on a per-country and per-IP-type basis.",
+  "requestFramePermissions": []
+}
