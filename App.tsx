@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import type { IpRight, Rule, CalculatedAnnuity, SortConfig } from './types';
 import { RuleTable } from './components/RuleTable';
 import { Button } from './components/common/Button';
@@ -11,6 +10,7 @@ import { IpRightModal } from './components/IpRightModal';
 import { findMatchingRuleAndPlan, calculateAnnuitySchedule } from './services/lawEngine';
 import { Pagination } from './components/common/Pagination';
 import { IpRightDetailModal } from './components/IpRightDetailModal';
+import { exportToCsv, importFromCsv } from './services/csv';
 
 
 type View = 'rules' | 'ip_rights';
@@ -19,9 +19,10 @@ const ITEMS_PER_PAGE = 15;
 type SortableRuleKey = keyof Pick<Rule, 'rank' | 'country' | 'ipType' | 'ipStatus' | 'ipOrigin'>;
 type SortableIpRightKey = keyof Pick<IpRight, 'name' | 'ipType'>;
 
-const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount }: { rules: Rule[], onEdit: (rule: Rule) => void, onDelete: (id: string) => void, onOpenModal: (rule: Rule | null) => void, ruleUsageCount: Map<string, number> }) => {
+const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount, onReplaceAll }: { rules: Rule[], onEdit: (rule: Rule) => void, onDelete: (id: string) => void, onOpenModal: (rule: Rule | null) => void, ruleUsageCount: Map<string, number>, onReplaceAll: (rules: Rule[]) => void }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig<Rule>>({ key: 'rank', direction: 'ascending' });
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   const handleSortRequest = (key: SortableRuleKey) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -63,6 +64,36 @@ const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount }: { r
 
     return filtered;
   }, [rules, searchQuery, sortConfig]);
+  
+  const handleExport = () => {
+    exportToCsv('rules_export.csv', filteredAndSortedRules);
+  };
+
+  const handleImportClick = () => {
+      if (window.confirm("This will replace all current rules with the content from the file. Are you sure?")) {
+          importFileRef.current?.click();
+      }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+          const importedRules = await importFromCsv<Rule>(file);
+          onReplaceAll(importedRules);
+          alert(`Successfully imported ${importedRules.length} rules.`);
+      } catch (error) {
+          console.error("Import failed:", error);
+          alert(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
+      } finally {
+          // Reset file input value to allow re-uploading the same file
+          if(event.target) {
+              event.target.value = '';
+          }
+      }
+  };
+
 
   return (
     <>
@@ -71,7 +102,12 @@ const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount }: { r
           <h1 className="text-2xl font-bold text-white">Law Engine Rules</h1>
           <p className="text-gray-400 mt-1">Define the logic for calculating deadlines and fees.</p>
         </div>
-        <Button onClick={() => onOpenModal(null)}>Create New Rule</Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleExport} className="bg-gray-600 hover:bg-gray-700">Export CSV</Button>
+          <Button onClick={handleImportClick} className="bg-gray-600 hover:bg-gray-700">Import CSV</Button>
+          <Button onClick={() => onOpenModal(null)}>Create New Rule</Button>
+          <input type="file" ref={importFileRef} onChange={handleFileChange} className="hidden" accept=".csv" />
+        </div>
       </div>
       <div className="relative mb-6">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -90,18 +126,20 @@ const RulesView = ({ rules, onEdit, onDelete, onOpenModal, ruleUsageCount }: { r
   );
 };
 
-const IpRightsView = ({ ipRights, rules, onOpenModal, onOpenDetail, onDelete, onSelect, selectedIpRight }: { 
+const IpRightsView = ({ ipRights, rules, onOpenModal, onOpenDetail, onDelete, onSelect, selectedIpRight, onReplaceAll }: { 
     ipRights: IpRight[],
     rules: Rule[],
     onOpenModal: (ipRight: IpRight | null) => void,
     onOpenDetail: (ipRight: IpRight) => void,
     onDelete: (id: string) => void,
     onSelect: (ipRight: IpRight | null) => void,
-    selectedIpRight: IpRight | null
+    selectedIpRight: IpRight | null,
+    onReplaceAll: (ipRights: IpRight[]) => void
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig<IpRight>>({ key: 'name', direction: 'ascending' });
     const [currentPage, setCurrentPage] = useState(1);
+    const importFileRef = useRef<HTMLInputElement>(null);
 
     const handleSortRequest = (key: SortableIpRightKey) => {
         let direction: 'ascending' | 'descending' = 'ascending';
@@ -158,6 +196,34 @@ const IpRightsView = ({ ipRights, rules, onOpenModal, onOpenDetail, onDelete, on
         }
     }, [currentPage, totalPages]);
     
+    const handleExport = () => {
+      exportToCsv('ip_rights_export.csv', filteredAndSortedIpRights);
+    };
+
+    const handleImportClick = () => {
+        if (window.confirm("This will replace all current IP rights with the content from the file. Are you sure?")) {
+            importFileRef.current?.click();
+        }
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const importedIpRights = await importFromCsv<IpRight>(file);
+            onReplaceAll(importedIpRights);
+            alert(`Successfully imported ${importedIpRights.length} IP rights.`);
+        } catch (error) {
+            console.error("Import failed:", error);
+            alert(`Import failed: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+             if(event.target) {
+                event.target.value = '';
+            }
+        }
+    };
+    
     return (
         <>
             <div className="flex justify-between items-center mb-6 flex-shrink-0">
@@ -165,7 +231,12 @@ const IpRightsView = ({ ipRights, rules, onOpenModal, onOpenDetail, onDelete, on
                     <h1 className="text-2xl font-bold text-white">IP Rights Portfolio</h1>
                     <p className="text-gray-400 mt-1">Manage your IP assets and their corresponding legal rules.</p>
                 </div>
-                <Button onClick={() => onOpenModal(null)}>Add IP Right</Button>
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleExport} className="bg-gray-600 hover:bg-gray-700">Export CSV</Button>
+                  <Button onClick={handleImportClick} className="bg-gray-600 hover:bg-gray-700">Import CSV</Button>
+                  <Button onClick={() => onOpenModal(null)}>Add IP Right</Button>
+                  <input type="file" ref={importFileRef} onChange={handleFileChange} className="hidden" accept=".csv" />
+                </div>
             </div>
              <div className="relative mb-6">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -208,12 +279,12 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('ip_rights');
 
   // Rules state
-  const { rules, addRule, updateRule, deleteRule } = useRules();
+  const { rules, addRule, updateRule, deleteRule, replaceAllRules } = useRules();
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
 
   // IP Rights state
-  const { ipRights, addIpRight, updateIpRight, deleteIpRight } = useIpRights();
+  const { ipRights, addIpRight, updateIpRight, deleteIpRight, replaceAllIpRights } = useIpRights();
   const [selectedIpRight, setSelectedIpRight] = useState<IpRight | null>(null);
   const [viewingIpRight, setViewingIpRight] = useState<IpRight | null>(null);
   const [isIpRightModalOpen, setIsIpRightModalOpen] = useState(false);
@@ -308,7 +379,7 @@ function App() {
 
           <main className="flex-1 p-8 flex flex-col overflow-hidden">
             {currentView === 'rules' ? (
-                <RulesView rules={rules} onDelete={deleteRule} onEdit={handleOpenRuleModal} onOpenModal={handleOpenRuleModal} ruleUsageCount={ruleUsageCount} />
+                <RulesView rules={rules} onDelete={deleteRule} onEdit={handleOpenRuleModal} onOpenModal={handleOpenRuleModal} ruleUsageCount={ruleUsageCount} onReplaceAll={replaceAllRules} />
             ) : (
                 <IpRightsView 
                     ipRights={ipRights} 
@@ -318,6 +389,7 @@ function App() {
                     onOpenModal={handleOpenIpRightModal}
                     onSelect={setSelectedIpRight}
                     selectedIpRight={selectedIpRight}
+                    onReplaceAll={replaceAllIpRights}
                 />
             )}
           </main>

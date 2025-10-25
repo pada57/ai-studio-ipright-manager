@@ -12,7 +12,7 @@ export const useRules = () => {
   const updateAndPersist = (newRules: Rule[]) => {
       // Re-calculate ranks before saving
       const sortedRules = newRules
-        .sort((a, b) => a.rank - b.rank) // Sort by existing rank first to maintain order
+        .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity)) // Handle potentially missing ranks from import
         .map((rule, index) => ({ ...rule, rank: index + 1 }));
       setRules(sortedRules);
       db.saveRules(sortedRules);
@@ -47,5 +47,9 @@ export const useRules = () => {
     updateAndPersist(newRules);
   }, [rules]);
 
-  return { rules, addRule, updateRule, deleteRule };
+  const replaceAllRules = useCallback((newRules: Rule[]) => {
+    updateAndPersist(newRules);
+  }, []);
+
+  return { rules, addRule, updateRule, deleteRule, replaceAllRules };
 };

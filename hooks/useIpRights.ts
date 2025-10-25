@@ -42,5 +42,9 @@ export const useIpRights = () => {
     updateAndPersist(newIpRights);
   }, [ipRights]);
 
-  return { ipRights, addIpRight, updateIpRight, deleteIpRight };
+  const replaceAllIpRights = useCallback((newIpRights: IpRight[]) => {
+    updateAndPersist(newIpRights);
+  }, []);
+
+  return { ipRights, addIpRight, updateIpRight, deleteIpRight, replaceAllIpRights };
 };
